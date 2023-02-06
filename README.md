@@ -64,6 +64,12 @@ If you are upgrading from v1 to v2, a data migration script is included in this 
   
   Want to message someone outside of your Moodle through Quickmail? No problem! Just type in their email address and they will receive a copy!
 
+* **Avoid resend**
+
+  if the error threshold is reached avoid sending more emails, to use this feature the admin must create a hidden user profile field (Text input). Which will be used by the
+  plugin to store the retry count for each user. This option should be hidden from all users except the admin and only be changeable by him in case if
+  the error count needs to be reset (in case of a change of user-email or a change in the global email server config).
+
 ## Contributions
 
 Contributions of any form are welcome. GitHub pull requests are preferred. Report any bugs or requests through our GitHub [issue tracker](https://github.com/lsuits/quickmail/issues).

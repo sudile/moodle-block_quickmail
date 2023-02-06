@@ -257,4 +257,29 @@ if ($ADMIN->fulltree) {
         )
     );
 
+    // Set custom email error field for each user.
+    $fields = ['' => ''];
+    foreach (profile_get_custom_fields() as $field) {
+        $fields[$field->shortname] = $field->shortname;
+    }
+    $settings->add(
+        new admin_setting_configselect(
+            'block_quickmail_profilefield',
+            block_quickmail_string::get('profilefield'),
+            block_quickmail_string::get('profilefield_desc'),
+            '',
+            $fields
+        )
+    );
+
+    // Set max count before avoid retrying.
+    $settings->add(
+        new admin_setting_configtext(
+            'block_quickmail_profilefieldcount',
+            block_quickmail_string::get('profilefieldcount'),
+            block_quickmail_string::get('profilefieldcount_desc'),
+            3
+        )
+    );
+
 }

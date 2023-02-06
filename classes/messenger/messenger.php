@@ -506,13 +506,42 @@ class messenger implements messenger_interface {
      * @return void
      */
     public function send() {
+        $profilefield = get_config('moodle', 'block_quickmail_profilefield');
+        $profilefieldcount = get_config('moodle', 'block_quickmail_profilefieldcount');
+
         // Iterate through all message recipients.
         foreach ($this->message->get_message_recipients() as $recipient) {
             // If any exceptions are thrown, gracefully move to the next recipient.
             if (!$recipient->has_been_sent_to()) {
                 try {
+                    if (isset($profilefield) && $profilefield !== '') {
+                        $shortname = $profilefield;
+                        $userid = $recipient->get('user_id');
+                        $fields = array_filter(profile_get_user_fields_with_data($userid),
+                            function ($var) use ($shortname) {
+                                return $var->field->shortname == $shortname;
+                            });
+                        if (count($fields) > 0) {
+                            $field = $fields[0];
+                            $val = intval($field->data) + 1;
+                            if ($val > $profilefieldcount) {
+                                message_recipient::delete_records(['id' => $userid]);
+                                continue;
+                            }
+                        }
+                    }
                     // Send to recipient now.
-                    $this->send_to_recipient($recipient);
+                    $success = $this->send_to_recipient($recipient);
+
+                    if (!$success && isset($userid, $field, $val)) {
+                        if ($val <= $profilefieldcount) {
+                            $field->set_user_data($val, FORMAT_PLAIN);
+                            $field->edit_save_data((object) [
+                                'id' => $userid,
+                                $field->inputname => $val
+                            ]);
+                        }
+                    }
                 } catch (\Exception $e) {
                     // TODO: handle a failed send here?
                     continue;
@@ -538,9 +567,7 @@ class messenger implements messenger_interface {
             $this->selected_profile_fields);
 
         // Send recipient_send_factory.
-        $recipientsendfactory->send();
-
-        return true;
+        return $recipientsendfactory->send();
     }
 
     /**

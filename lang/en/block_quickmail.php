@@ -368,6 +368,10 @@ $string['picker_style_option_title'] = 'My Preferred Recipient Picker Style';
 $string['picker_style_option_title_help'] = 'Your personally preferred interface for selecting recipients when composing a message.';
 $string['picker_style_autocomplete'] = 'Autocomplete';
 $string['picker_style_multiselect'] = 'Multiselect';
+$string['profilefield'] = 'Error count profile field';
+$string['profilefield_desc'] = 'Custom user profile field, which gets counted up when a email to the given user was faulty.';
+$string['profilefieldcount'] = 'Avoid resend at';
+$string['profilefieldcount_desc'] = 'This setting will define a threshhold which marks the point where emails to teh given user will not be resend.';
 
 // Redirect messages.
 $string['redirect_back_to_course_from_message_after_duplicate'] = 'Your message has been successfully duplicated.';

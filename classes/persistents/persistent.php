@@ -954,4 +954,15 @@ abstract class persistent {
         return $DB->record_exists_select(static::TABLE, $select, $params);
     }
 
+    /**
+     * Delete a single record.
+     *
+     * @param array $filters Filters to apply.
+     * @return bool
+     */
+    public static function delete_records($filters = array()) : bool {
+        global $DB;
+        return $DB->delete_records(static::TABLE, $filters);
+    }
+
 }
