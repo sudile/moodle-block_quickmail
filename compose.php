@@ -53,9 +53,11 @@ $courseuserdata = block_quickmail_plugin::get_compose_message_recipients(
 $PAGE->set_pagetype('block-quickmail');
 $PAGE->set_pagelayout('standard');
 $PAGE->set_title(block_quickmail_string::get('pluginname') . ': ' . block_quickmail_string::get('compose'));
-$PAGE->navbar->add(block_quickmail_string::get('pluginname'),
+$PAGE->navbar->add(
+    block_quickmail_string::get('pluginname'),
     new moodle_url('/blocks/quickmail/qm.php',
-    array('courseid' => $course->id)));
+    array('courseid' => $course->id))
+);
 $PAGE->navbar->add(block_quickmail_string::get('compose'));
 $PAGE->set_heading(block_quickmail_string::get('pluginname') . ': ' . block_quickmail_string::get('compose'));
 $PAGE->requires->css(new moodle_url('/blocks/quickmail/style.css'));
@@ -97,13 +99,30 @@ file_prepare_draft_area(
     block_quickmail_config::get_filemanager_options()
 );
 
+$messagedraftitemid = file_get_submitted_draft_itemid('message_editor');
+$messagebody = $draftmessage ? $draftmessage->get('body') : "";
+$messagebody = file_prepare_draft_area(
+    $messagedraftitemid,
+   $coursecontext->id,
+   'block_quickmail',
+   'message_editor',
+   $pageparams['draftid'] ?: null,
+   block_quickmail_config::get_filemanager_options(),
+   $messagebody
+);
+
+if ($draftmessage) {
+    $draftmessage->set('body', $messagebody);
+}
+
 // Instantiate the form.
 $composeform = \block_quickmail\forms\compose_message_form::make(
     $coursecontext,
     $USER,
     $course,
     $courseuserdata,
-    $draftmessage
+    $draftmessage,
+    $attachmentsdraftitemid
 );
 
 // Handle the Request.
@@ -123,11 +142,12 @@ try {
         $sendastask = \block_quickmail_config::block('send_as_tasks');
 
         $message = \block_quickmail\messenger\messenger::compose(
-                       $USER,
-                       $course,
-                       $composeform->get_data(),
-                       $draftmessage,
-                       $sendastask);
+            $USER,
+            $course,
+            $composeform->get_data(),
+            $draftmessage,
+            $sendastask
+        );
 
         // Resolve redirect message.
         if ($message->is_sent_message()) {
@@ -148,10 +168,11 @@ try {
 
         // Attempt to save draft, handle exceptions.
         $message = \block_quickmail\messenger\messenger::save_compose_draft(
-                       $USER,
-                       $course,
-                       $composeform->get_data(),
-                       $draftmessage);
+            $USER,
+            $course,
+            $composeform->get_data(),
+            $draftmessage
+        );
 
         // Redirect back to course page.
         $request->redirect_as_info(block_quickmail_string::get(
@@ -161,7 +182,7 @@ try {
 } catch (\block_quickmail\exceptions\validation_exception $e) {
     $composeform->set_error_exception($e);
 } catch (\block_quickmail\exceptions\critical_exception $e) {
-    print_error('critical_error', 'block_quickmail');
+    throw new moodle_exception('critical_error', 'block_quickmail');
 }
 
 // Render page.
